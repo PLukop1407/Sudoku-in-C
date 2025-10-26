@@ -5,35 +5,16 @@
 #include <time.h>
 #include "board.h"
 #include "generator.h"
+#include "ui.h"
 
 // TODO: make UI.c / Game.c to handle UI / Game logic
 
-void printUI(int *a) {
-        system("cls");
-        printf("+----------------------+\n");
-        printf("|         Sudoku       |\n");
-        printf("+----------------------+\n");
-        printf("\n");
-        printf("1. Play game\n");
-        printf("2. Load game\n");
-        printf("3. Quit\n");
-        printf("\n");
-        printf("Enter an option: ");
-        scanf("%d", a);
-        printf("\n");
-}
-
-
-void gameLoop(Board *b) {
+void gameLoop(Board *b, Cursor *c) {
     bool playing = true;
     int input;
 
-    // Highlighted cell coordinates
-    int hRow = 0;
-    int hCol = 0;
-
     while(playing) {
-        print_board(b, hRow, hCol);
+        print_board(b, c);
 
         // Trying to read arrow key inputs but Windows puts special values in the buffer (0 || 224)
         int ch = getch();
@@ -42,22 +23,34 @@ void gameLoop(Board *b) {
                 switch(ch) {
                     case 77:
                     //right
-                        hCol = (hCol < 8) ? hCol + 1 : hCol;
+                        c->col = (c->col < 8) ? c->col + 1 : c->col;
                         break;
                     case 75:
                     //left
-                        hCol = (hCol > 0) ? hCol - 1 : hCol;
+                        c->col = (c->col > 0) ? c->col - 1 : c->col;
                         break;
                     case 80:
                     //up
-                        hRow = (hRow < 8) ? hRow + 1 : hRow;
+                        c->row = (c->row < 8) ? c->row + 1 : c->row;
                         break;
                     case 72:
                     //down
-                        hRow = (hRow > 0) ? hRow - 1 : hRow;
+                        c->row = (c->row > 0) ? c->row - 1 : c->row;
                         break;
                 }
+            } else if (ch == 27) { // ESC key
+                printf("\nExiting game, press any key to continue...\n");
+                getch();
+                return;
+            } else if (ch == 13 && b->grid[c->row][c->col] == 0) { // ENTER key && empty cell
+                int input;
+                printf("\nEnter a number for the highlighted cell: ");
+                scanf("%d", &input); // TODO: input validation & move to UI/Game.c
+                set_cell(b, c->row, c->col, input);
+                getch();
             }
+            //printf("\nASCII Value in ch: %d\n", ch);
+            //getch();
         }
     }
 
@@ -69,13 +62,14 @@ int main() {
     int userInput;
 
     while(running) {
-        printUI(&userInput);
+        print_ui(&userInput);
         switch (userInput) {
             case 1:
                 Board b;
+                Cursor c = {0, 0};
                 init_board(&b);
                 remove_numbers(&b, 48);
-                gameLoop(&b);
+                gameLoop(&b, &c);
                 break;
             case 2:
                 printf("Picked load game");

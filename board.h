@@ -8,7 +8,6 @@ typedef struct {
 } Board;
 
 void init_board(Board *b);
-void print_board(const Board *b, int hRow, int hCol);
 int is_valid_move(const Board *b, int row, int col, int num);
 void set_cell(Board *b, int row, int col, int num);
 int is_complete(const Board *b);
